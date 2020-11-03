@@ -9,7 +9,7 @@ from qiskit.providers.aer.pulse_new.models.signals import PiecewiseConstant
 class InstructionToSignals:
     """Converts pulse instructions to Signals for the Aer simulator."""
 
-    def __init__(self, dt: int, carriers: List[float] = None):
+    def __init__(self, dt: float, carriers: List[float] = None):
         """
 
         Args:
