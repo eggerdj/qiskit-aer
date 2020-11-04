@@ -1,3 +1,19 @@
+# This code is part of Qiskit.
+#
+# (C) Copyright IBM 2020.
+#
+# This code is licensed under the Apache License, Version 2.0. You may
+# obtain a copy of this license in the LICENSE.txt file in the root directory
+# of this source tree or at http://www.apache.org/licenses/LICENSE-2.0.
+#
+# Any modifications or derivative works of this code must retain this
+# copyright notice, and modified files need to carry a notice indicating
+# that they have been altered from the originals.
+
+"""
+Pulse schedule to Signals converter.
+"""
+
 import numpy as np
 from typing import List
 
@@ -43,7 +59,7 @@ class InstructionToSignals:
             frequency_shifts[ch.name] = 0.
             signals[ch.name] = PiecewiseConstant(samples=[], dt=self._dt, name=ch.name, carrier_freq=carrier_freq)
 
-        for start_time, inst in schedule.instructions:
+        for start_sample, inst in schedule.instructions:
             ch = inst.channel.name
             phi = phases[ch]
             freq = frequency_shifts[ch]
@@ -53,9 +69,9 @@ class InstructionToSignals:
                 start_idx = len(signals[ch].samples)
                 for idx, sample in enumerate(inst.pulse.get_waveform().samples):
                     t = self._dt * (idx + start_idx)
-                    samples.append(sample * np.exp(1.0j * freq * t + 1.0j * phi))
+                    samples.append(sample * np.exp(2.0j * np.pi * freq * t + 1.0j * phi))
 
-                signals[ch].add_samples(start_time, samples)
+                signals[ch].add_samples(start_sample, samples)
 
             if isinstance(inst, ShiftPhase):
                 phases[ch] += inst.phase
@@ -67,6 +83,6 @@ class InstructionToSignals:
                 phases[ch] = inst.phase
 
             if isinstance(inst, SetFrequency):
-                frequency_shifts[ch] = inst.frequency
+                frequency_shifts[ch] = inst.frequency - signals[ch].carrier_freq
 
         return list(signals.values())
